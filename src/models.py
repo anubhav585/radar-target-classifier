@@ -45,3 +45,21 @@ class RadarLSTM(nn.Module):
         # Take the output of the last time step
         out = self.fc(out[:, -1, :])
         return out
+
+
+class RadarCNN1D(nn.Module):
+    def __init__(self, input_dim=3, num_classes=4, hidden_dim=64):
+        super(RadarCNN1D, self).__init__()
+        self.conv1 = nn.Conv1d(in_channels=input_dim, out_channels=hidden_dim, kernel_size=3, padding=1)
+        self.relu = nn.ReLU()
+        self.pool = nn.AdaptiveMaxPool1d(1)
+        self.fc = nn.Linear(hidden_dim, num_classes)
+        
+    def forward(self, x):
+        # x shape: (batch_size, seq_len=100, input_dim=3) -> Transpose to (batch_size, 3, 100)
+        x = x.permute(0, 2, 1)
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.pool(x).squeeze(-1) # Shape: (batch_size, hidden_dim)
+        out = self.fc(x)
+        return out
